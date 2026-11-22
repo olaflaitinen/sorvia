@@ -90,6 +90,7 @@ export interface Meta {
   llm_model: string | null;
   strategy: string;
   max_rows: number;
+  demo_password: string | null;
 }
 
 export class ApiError extends Error {

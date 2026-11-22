@@ -144,3 +144,19 @@ def test_dsns_are_derived_from_database_url(monkeypatch: pytest.MonkeyPatch) -> 
     explicit = Settings(database_url="postgresql://o:p@h/db", app_dsn="postgresql://x@y/z",
                         api_db_password="a", nl_db_password="b")  # type: ignore[arg-type]
     assert explicit.app_dsn == "postgresql://x@y/z"
+
+
+def test_secrets_are_derived_when_missing(monkeypatch: pytest.MonkeyPatch) -> None:
+    for var in ("DATABASE_URL", "DATABASE_URL_UNPOOLED", "POSTGRES_URL", "POSTGRES_URL_NON_POOLING",
+                "SORVIA_JWT_SECRET", "SORVIA_FIN_KEY", "SORVIA_API_DB_PASSWORD", "SORVIA_NL_DB_PASSWORD",
+                "SORVIA_ADMIN_DSN", "SORVIA_APP_DSN", "SORVIA_READER_DSN"):
+        monkeypatch.delenv(var, raising=False)
+    a = Settings(database_url="postgresql://owner:secret-1@h/db", environment="production")
+    b = Settings(database_url="postgresql://owner:secret-1@h/db", environment="production")
+    c = Settings(database_url="postgresql://owner:secret-2@h/db", environment="production")
+    a.validate_for_production()
+    assert a.jwt_secret.get_secret_value() == b.jwt_secret.get_secret_value()
+    assert a.jwt_secret.get_secret_value() != c.jwt_secret.get_secret_value()
+    assert a.api_db_password is not None and a.nl_db_password is not None
+    assert a.api_db_password.get_secret_value() != a.nl_db_password.get_secret_value()
+    assert "user=sorvia_nl" in a.reader_dsn

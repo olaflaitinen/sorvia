@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import hmac
 import os
 from functools import lru_cache
 from pathlib import Path
@@ -51,6 +53,11 @@ class Settings(BaseSettings):
     # Personal data protection (pgcrypto).
     fin_key: SecretStr = SecretStr("dev-only-fin-key")
 
+    # Demo accounts (admin, menecer, aysel.bak01, tural.gnc01). The password is
+    # shown on the login page while show_demo_password is true.
+    demo_password: SecretStr = SecretStr("Sorvia-Demo-2026")
+    show_demo_password: bool = True
+
     # Language model.
     llm_provider: Literal["openai", "static"] = "static"
     llm_model: str = ""
@@ -91,6 +98,22 @@ class Settings(BaseSettings):
         direct = (self.database_url_unpooled or os.environ.get("DATABASE_URL_UNPOOLED")
                   or os.environ.get("POSTGRES_URL_NON_POOLING") or url)
         explicit = self.model_fields_set
+        # Secrets that were not configured are derived from the database
+        # credential with HMAC, so a hosted deployment needs no hand-typed keys
+        # and every instance of the same deployment derives the same values.
+        material = str(conninfo_to_dict(_normalise(url)).get("password") or url).encode()
+
+        def derive(purpose: str) -> SecretStr:
+            return SecretStr(hmac.new(material, f"sorvia/{purpose}".encode(), hashlib.sha256).hexdigest())
+
+        if "jwt_secret" not in explicit:
+            self.jwt_secret = derive("jwt")
+        if "fin_key" not in explicit:
+            self.fin_key = derive("fin")
+        if self.api_db_password is None:
+            self.api_db_password = derive("role/sorvia_api")
+        if self.nl_db_password is None:
+            self.nl_db_password = derive("role/sorvia_nl")
         if "admin_dsn" not in explicit:
             self.admin_dsn = _normalise(direct)
         for field, user, secret in (("app_dsn", "sorvia_api", self.api_db_password),

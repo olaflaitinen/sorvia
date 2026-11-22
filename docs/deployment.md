@@ -6,19 +6,16 @@ Repoda hazır konfiqurasiya var: `vercel.json`, `api/index.py` (FastAPI serverle
 
 1. Vercel-də **Add New Project** seçin və bu GitHub reposunu import edin. Framework preset: **Other**. Qalan parametrlər `vercel.json`-dan oxunur.
 2. **Storage** bölməsindən **Neon Postgres** əlavə edib layihəyə qoşun. Vercel `DATABASE_URL` və `DATABASE_URL_UNPOOLED` dəyişənlərini avtomatik yaradır.
-3. **Settings → Environment Variables** bölməsinə bunları əlavə edin:
+3. Əlavə gizli açar yazmaq lazım deyil. `DATABASE_URL` təyin olunduqda JWT açarı, FİN şifrələmə açarı və `sorvia_api`, `sorvia_nl` rollarının parolları ondan HMAC-SHA256 ilə serverdə törədilir. İstəsəniz, bunları açıq şəkildə təyin edə bilərsiniz:
 
-| Dəyişən | Dəyər |
+| Dəyişən | Təyinat |
 |---|---|
-| `SORVIA_ENVIRONMENT` | `production` |
-| `SORVIA_JWT_SECRET` | ən azı 32 simvol təsadüfi dəyər |
-| `SORVIA_FIN_KEY` | təsadüfi dəyər (FİN şifrələməsi üçün) |
-| `SORVIA_API_DB_PASSWORD` | `sorvia_api` rolunun parolu (uzun, təsadüfi) |
-| `SORVIA_NL_DB_PASSWORD` | `sorvia_nl` rolunun parolu (uzun, təsadüfi) |
-| `SORVIA_DEMO_PASSWORD` | demo istifadəçilərin parolu (istəyə görə) |
-| `SORVIA_POOL_MIN_SIZE` | `0` |
-
-Təsadüfi dəyər yaratmaq: `python -c "import secrets; print(secrets.token_urlsafe(48))"`.
+| `SORVIA_ENVIRONMENT` | `production` (zəif açarlarla işə düşməyi qadağan edir) |
+| `SORVIA_JWT_SECRET`, `SORVIA_FIN_KEY` | törədilmiş açarların əvəzinə öz açarlarınız |
+| `SORVIA_API_DB_PASSWORD`, `SORVIA_NL_DB_PASSWORD` | rolların parolları |
+| `SORVIA_DEMO_PASSWORD` | demo istifadəçilərin parolu (default: `Sorvia-Demo-2026`) |
+| `SORVIA_SHOW_DEMO_PASSWORD` | `false`: demo parolu giriş səhifəsində göstərilmir |
+| `SORVIA_POOL_MIN_SIZE` | `0` (serverless üçün tövsiyə olunur) |
 
 4. **Deploy**. Build zamanı `scripts/vercel-build.sh` bazanı avtomatik hazırlayır: miqrasiyalar, `sorvia_api` və `sorvia_nl` rolları, demo data (yalnız baza boşdursa) və semantik qat. Bu addımlar idempotentdir, hər deploy-da təhlükəsiz təkrarlanır.
 

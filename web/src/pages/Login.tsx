@@ -1,6 +1,6 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Navigate } from "react-router-dom";
-import { ApiError } from "../api";
+import { ApiError, api } from "../api";
 import { useAuth } from "../auth";
 import { Alert, Button, Logo, Mark, Slogan } from "../components/ui";
 
@@ -17,6 +17,11 @@ export function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [demoPassword, setDemoPassword] = useState<string | null>(null);
+
+  useEffect(() => {
+    api.meta().then((m) => setDemoPassword(m.demo_password)).catch(() => setDemoPassword(null));
+  }, []);
 
   if (user) return <Navigate to="/" replace />;
 
@@ -69,14 +74,20 @@ export function Login() {
           <div className="demo">
             <div className="demo-title">Demo hesablar</div>
             {DEMO.map((d) => (
-              <button type="button" key={d.username} className="demo-item" onClick={() => setUsername(d.username)}>
+              <button type="button" key={d.username} className="demo-item" onClick={() => { setUsername(d.username); if (demoPassword) setPassword(demoPassword); }}>
                 <span>
                   <b>{d.username}</b> <span className="muted">{d.label}</span>
                 </span>
                 <span className="muted small">{d.note}</span>
               </button>
             ))}
-            <p className="muted small">Demo parolu layihə müəllifindən alın.</p>
+            <p className="muted small">
+              {demoPassword ? (
+                <>Bütün demo hesabların parolu: <b className="mono">{demoPassword}</b>. Hesabı seçmək kifayətdir.</>
+              ) : (
+                "Demo parolu layihə müəllifindən alın."
+              )}
+            </p>
           </div>
         </form>
       </section>

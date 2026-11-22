@@ -34,8 +34,10 @@ def cmd_bootstrap_roles(args: argparse.Namespace) -> int:
     from sorvia.migrate import bootstrap_roles
 
     s = get_settings()
-    api_pw = os.environ.get("SORVIA_API_DB_PASSWORD") or getpass.getpass("Password for sorvia_api: ")
-    nl_pw = os.environ.get("SORVIA_NL_DB_PASSWORD") or getpass.getpass("Password for sorvia_nl: ")
+    api_pw = (s.api_db_password.get_secret_value() if s.api_db_password else None) or getpass.getpass(
+        "Password for sorvia_api: ")
+    nl_pw = (s.nl_db_password.get_secret_value() if s.nl_db_password else None) or getpass.getpass(
+        "Password for sorvia_nl: ")
     bootstrap_roles(s.admin_dsn, api_pw, nl_pw, s.statement_timeout_ms)
     print("Login roles sorvia_api and sorvia_nl are ready.")
     return 0
@@ -92,9 +94,7 @@ def cmd_seed(args: argparse.Namespace) -> int:
             conn.commit()
             print(json.dumps(counts, indent=2))
     if args.demo_users:
-        password = os.environ.get("SORVIA_DEMO_PASSWORD")
-        if not password:
-            raise SystemExit("Set SORVIA_DEMO_PASSWORD to create demo users")
+        password = s.demo_password.get_secret_value()
         for username, display, role, branch in (
             ("admin", "Sistem administratoru", "admin", None),
             ("menecer", "Regional menecer", "manager", None),
@@ -201,7 +201,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--reset", action="store_true",
                    help="truncate existing domain data first (also removes platform users and query logs)")
     s.add_argument("--if-empty", action="store_true", help="do nothing if domain data already exists")
-    s.add_argument("--demo-users", action="store_true", help="create demo users (SORVIA_DEMO_PASSWORD)")
+    s.add_argument("--demo-users", action="store_true", help="create demo users (password: SORVIA_DEMO_PASSWORD)")
     s.set_defaults(func=cmd_seed)
 
     sub.add_parser("index-schema", help="rebuild the semantic layer embeddings").set_defaults(func=cmd_index_schema)

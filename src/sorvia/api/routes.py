@@ -89,7 +89,8 @@ def meta(svc: ServicesDep) -> dict[str, Any]:
 
     s = svc.settings
     return {"version": __version__, "llm_provider": s.llm_provider, "llm_model": s.llm_model or None,
-            "strategy": s.strategy, "max_rows": s.max_rows}
+            "strategy": s.strategy, "max_rows": s.max_rows,
+            "demo_password": s.demo_password.get_secret_value() if s.show_demo_password else None}
 
 
 @router.get("/v1/suggestions", tags=["ask"])

@@ -13,7 +13,7 @@ if [ -n "${DATABASE_URL:-${POSTGRES_URL:-}}" ]; then
   export PYTHONPATH="$PWD/src"
   "$PY" -m sorvia.cli migrate
   "$PY" -m sorvia.cli bootstrap-roles
-  "$PY" -m sorvia.cli seed --if-empty --scale "${SORVIA_SEED_SCALE:-1}" ${SORVIA_DEMO_PASSWORD:+--demo-users}
+  "$PY" -m sorvia.cli seed --if-empty --scale "${SORVIA_SEED_SCALE:-1}" --demo-users
   "$PY" -m sorvia.cli index-schema
 else
   echo "==> DATABASE_URL is not set; skipping database initialisation"
