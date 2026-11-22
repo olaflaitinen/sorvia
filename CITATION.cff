@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+title: "Sorvia: Azerbaijani natural-language querying with database-enforced guardrails and a self-tuning index advisor"
+message: "If you use Sorvia or its benchmark, please cite it as below."
+type: software
+authors:
+  - name: "Sorvia contributors"
+version: 1.0.0
+date-released: 2026-11-22
+license: MIT
+repository-code: "https://github.com/olaflaitinen/sorvia"
+keywords:
+  - text-to-sql
+  - azerbaijani
+  - postgresql
+  - row-level security
+  - index selection

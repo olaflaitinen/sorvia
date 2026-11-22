@@ -1,0 +1,49 @@
+# Local stack: PostgreSQL (pgvector + HypoPG), one-shot initialisation, API.
+#   cp .env.example .env   # then edit the secrets
+#   docker compose up --build
+name: sorvia
+
+services:
+  db:
+    build: ./db
+    environment:
+      POSTGRES_DB: sorvia
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sorvia"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  init:
+    build: .
+    command: ["sorvia-init"]
+    env_file: .env
+    environment:
+      SORVIA_ADMIN_DSN: postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/sorvia
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    build: .
+    env_file: .env
+    environment:
+      SORVIA_ADMIN_DSN: postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/sorvia
+      SORVIA_APP_DSN: postgresql://sorvia_api:${SORVIA_API_DB_PASSWORD}@db:5432/sorvia
+      SORVIA_READER_DSN: postgresql://sorvia_nl:${SORVIA_NL_DB_PASSWORD}@db:5432/sorvia
+    depends_on:
+      init:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:8000:8000"
+    restart: unless-stopped
+
+volumes:
+  pgdata:
