@@ -160,3 +160,13 @@ def test_secrets_are_derived_when_missing(monkeypatch: pytest.MonkeyPatch) -> No
     assert a.api_db_password is not None and a.nl_db_password is not None
     assert a.api_db_password.get_secret_value() != a.nl_db_password.get_secret_value()
     assert "user=sorvia_nl" in a.reader_dsn
+
+
+def test_provider_urls_are_normalised(monkeypatch: pytest.MonkeyPatch) -> None:
+    for var in ("DATABASE_URL", "DATABASE_URL_UNPOOLED", "POSTGRES_URL", "POSTGRES_URL_NON_POOLING",
+                "SORVIA_ADMIN_DSN", "SORVIA_APP_DSN", "SORVIA_READER_DSN"):
+        monkeypatch.delenv(var, raising=False)
+    s = Settings(database_url="postgres://postgres.abcref:pw@aws-0-eu.pooler.supabase.com:6543/postgres"
+                              "?sslmode=require&supa=base-pooler.x&pgbouncer=true")
+    assert " supa=" not in s.admin_dsn and "pgbouncer" not in s.admin_dsn and "sslmode=require" in s.admin_dsn
+    assert "user=sorvia_api.abcref" in s.app_dsn and "user=sorvia_nl.abcref" in s.reader_dsn

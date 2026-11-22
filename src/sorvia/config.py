@@ -8,6 +8,7 @@ import os
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from psycopg.conninfo import conninfo_to_dict, make_conninfo
 from pydantic import Field, SecretStr, model_validator
@@ -120,6 +121,10 @@ class Settings(BaseSettings):
                                     ("reader_dsn", "sorvia_nl", self.nl_db_password)):
             if field not in explicit and secret is not None:
                 params = conninfo_to_dict(_normalise(url))
+                owner = str(params.get("user") or "")
+                # Supabase Supavisor identifies the tenant by a user suffix: postgres.<project-ref>.
+                if "." in owner:
+                    user = f"{user}.{owner.split('.', 1)[1]}"
                 params.update(user=user, password=secret.get_secret_value())
                 setattr(self, field, make_conninfo(**params))  # type: ignore[arg-type]
         return self
@@ -135,11 +140,19 @@ class Settings(BaseSettings):
             raise RuntimeError("SORVIA_FIN_KEY must be set in production")
 
 
+_LIBPQ_QUERY_KEYS = {
+    "sslmode", "sslrootcert", "sslcert", "sslkey", "sslcompression", "channel_binding", "gssencmode",
+    "options", "application_name", "target_session_attrs", "connect_timeout", "keepalives",
+}
+
+
 def _normalise(url: str) -> str:
-    """libpq accepts postgres:// but some providers add parameters psycopg does not know."""
+    """Drop provider-specific URL parameters (pgbouncer=, supa=, ...) that libpq rejects."""
+    if "://" in url:
+        parts = urlsplit(url)
+        query = [(k, v) for k, v in parse_qsl(parts.query) if k in _LIBPQ_QUERY_KEYS]
+        url = urlunsplit(parts._replace(query=urlencode(query)))
     params = conninfo_to_dict(url)
-    params.pop("pgbouncer", None)
-    params.pop("connect_timeout", None)
     params.setdefault("connect_timeout", "10")
     return make_conninfo(**params)  # type: ignore[arg-type]
 
