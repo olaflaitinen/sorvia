@@ -1,11 +1,13 @@
 # Yerləşdirmə
 
-## Vercel + Neon (tövsiyə olunan)
+## Vercel + Supabase və ya Neon (tövsiyə olunan)
+
+Canlı nümunə: https://sorvia-nine.vercel.app (Vercel, `iad1` regionu, Supabase Free Plan).
 
 Repoda hazır konfiqurasiya var: `vercel.json`, `api/index.py` (FastAPI serverless funksiya kimi) və `scripts/vercel-build.sh`.
 
 1. Vercel-də **Add New Project** seçin və bu GitHub reposunu import edin. Framework preset: **Other**. Qalan parametrlər `vercel.json`-dan oxunur.
-2. **Storage** bölməsindən **Neon Postgres** əlavə edib layihəyə qoşun. Vercel `DATABASE_URL` və `DATABASE_URL_UNPOOLED` dəyişənlərini avtomatik yaradır.
+2. **Storage** bölməsindən **Supabase** və ya **Neon** bazası yaradıb layihəyə qoşun. Vercel bağlantı dəyişənlərini avtomatik yaradır (Supabase: `POSTGRES_URL`, `POSTGRES_URL_NON_POOLING`; Neon: `DATABASE_URL`, `DATABASE_URL_UNPOOLED`). Sorvia hər ikisini tanıyır.
 3. Əlavə gizli açar yazmaq lazım deyil. `DATABASE_URL` təyin olunduqda JWT açarı, FİN şifrələmə açarı və `sorvia_api`, `sorvia_nl` rollarının parolları ondan HMAC-SHA256 ilə serverdə törədilir. İstəsəniz, bunları açıq şəkildə təyin edə bilərsiniz:
 
 | Dəyişən | Təyinat |
@@ -21,11 +23,12 @@ Repoda hazır konfiqurasiya var: `vercel.json`, `api/index.py` (FastAPI serverle
 
 Real dil modeli üçün əlavə olaraq `SORVIA_LLM_PROVIDER=openai`, `SORVIA_LLM_BASE_URL`, `SORVIA_LLM_MODEL` və `SORVIA_LLM_API_KEY` təyin edin. Bunlar olmadan sistem oflayn rejimdə işləyir və test dəstindəki 60 suala cavab verir.
 
-### Neon üçün qeydlər
+### Supabase və Neon üçün qeydlər
 
-- Neon superuser icazəsi vermir. Seed buna görə trigger-ləri `ALTER TABLE ... DISABLE TRIGGER USER` ilə müvəqqəti söndürür, `session_replication_role` yalnız superuser olduqda istifadə olunur.
+- Supabase və Neon superuser icazəsi vermir. Seed buna görə trigger-ləri `ALTER TABLE ... DISABLE TRIGGER USER` ilə müvəqqəti söndürür, `session_replication_role` yalnız superuser olduqda istifadə olunur.
 - Tətbiq bağlantıları Neon-un pooler ünvanından (`DATABASE_URL`), miqrasiyalar birbaşa ünvandan (`DATABASE_URL_UNPOOLED`) gedir. Pooler-in transaction rejimi üçün prepared statement-lər söndürülüb.
-- `pgvector`, `hypopg`, `pgcrypto` və `pg_stat_statements` Neon-da mövcuddur.
+- `pgvector`, `hypopg`, `pgcrypto` və `pg_stat_statements` hər iki xidmətdə mövcuddur. Supabase genişlənmələri `extensions` sxeminə qoyur; V009 miqrasiyası tətbiq rollarına həmin sxemdən istifadə icazəsi verir.
+- Supabase pooler-i (Supavisor) istifadəçini `rol.layihə-ref` formatında tanıyır; `sorvia_api` və `sorvia_nl` üçün bu format avtomatik qurulur.
 
 ## Docker
 

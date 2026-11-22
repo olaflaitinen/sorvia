@@ -7,6 +7,8 @@
 
 <p align="center"><b>Soruş, aşkara çıxsın.</b></p>
 
+<p align="center"><a href="https://sorvia-nine.vercel.app">Canlı demo: sorvia-nine.vercel.app</a></p>
+
 # Sorvia
 
 **Verilənlər bazasına Azərbaycan dilində sual ver, cavabı təhlükəsiz SQL ilə al.**
@@ -55,6 +57,10 @@ flowchart LR
 - **Təhlükəsizlik:** üç ayrı rol, sütun səviyyəsində icazələr, `pgcrypto` ilə şifrələnmiş FİN, `security_invoker` view-lar, audit jurnalı.
 - **Analitika:** Kimball ulduz sxemi (`analytics.fact_sales` və 4 ölçü cədvəli), inkremental ETL proseduru.
 - **Performans:** B-tree, BRIN, partial və composite indekslər, partitioning, izolyasiya səviyyələrinin eksperimental müqayisəsi.
+
+## Canlı demo
+
+**https://sorvia-nine.vercel.app** (Vercel + Supabase PostgreSQL). Giriş səhifəsində demo hesabı seçmək kifayətdir: `admin`, `menecer`, `aysel.bak01` (yalnız BAK01 filialı), `tural.gnc01` (yalnız GNC01). Demo rejimində sistem oflayn işləyir və test dəstindəki 60 suala cavab verir; real dil modeli `docs/deployment.md`-də göstərildiyi kimi qoşulur.
 
 ## Veb interfeys
 
