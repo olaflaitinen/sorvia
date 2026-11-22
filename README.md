@@ -1,3 +1,12 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/brand/sorvia-logo-horizontal-light.svg">
+    <img src="assets/brand/sorvia-logo-horizontal.svg" alt="Sorvia" width="320">
+  </picture>
+</p>
+
+<p align="center"><b>Soruş, aşkara çıxsın.</b></p>
+
 # Sorvia
 
 **Verilənlər bazasına Azərbaycan dilində sual ver, cavabı təhlükəsiz SQL ilə al.**
@@ -139,13 +148,15 @@ src/sorvia/
   evaluation.py       execution accuracy metrikləri
 benchmark/            test dəsti, hücum korpusu, qiymətləndirmə skripti
 experiments/          RQ1-RQ4 və S1-S3 eksperimentləri
-docs/                 arxitektura, DB dizaynı, təhlükəsizlik, eksperimentlər, API
+docs/                 arxitektura, DB dizaynı, təhlükəsizlik, eksperimentlər, API, brend
+assets/brand/         loqo, ikon, favicon, rəng token-ləri (tokens.css)
 ```
 
 ## Növbəti mərhələ
 
 - Veb interfeys (sual paneli, admin paneli, optimallaşdırma paneli).
-- Brendinq (Figma).
+
+Brend bələdçisi: [`docs/brand.md`](docs/brand.md) və Figma faylı.
 
 ## Lisenziya və istinad
 
