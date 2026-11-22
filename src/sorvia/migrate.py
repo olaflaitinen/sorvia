@@ -103,7 +103,10 @@ def bootstrap_roles(dsn: str, api_password: str, reader_password: str, statement
             exists = conn.execute("SELECT 1 FROM pg_roles WHERE rolname = %s", (login,)).fetchone()
             verb = sql.SQL("ALTER") if exists else sql.SQL("CREATE")
             conn.execute(
-                sql.SQL("{} ROLE {} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS PASSWORD {}").format(
+                # Only LOGIN and PASSWORD are set: role attributes such as SUPERUSER or
+                # BYPASSRLS default to off, and managed services (Neon, RDS) refuse to
+                # even restate them for non-superusers.
+                sql.SQL("{} ROLE {} WITH LOGIN PASSWORD {}").format(
                     verb, sql.Identifier(login), sql.Literal(password)
                 )
             )

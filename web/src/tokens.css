@@ -1,0 +1,90 @@
+/* Sorvia design tokens. Source of truth: Figma file "Sorvia Brand Identity"
+   (Variables: Primitives, Color [Light, Dark], Layout). Keep names in sync. */
+
+:root {
+  /* Primitives */
+  --sv-ink-950: #0B0C0E;
+  --sv-ink-900: #15171B;
+  --sv-ink-800: #23262C;
+  --sv-ink-700: #353941;
+  --sv-ink-600: #4B5059;
+  --sv-ink-500: #6A7079;
+  --sv-ink-400: #8E949C;
+  --sv-ink-300: #B5B9BE;
+  --sv-ink-200: #D6D8DA;
+  --sv-ink-100: #E9E7E1;
+  --sv-paper-100: #F5F2EA;
+  --sv-paper-50: #FBFAF6;
+  --sv-white: #FFFFFF;
+  --sv-amber-300: #F7C77A;
+  --sv-amber-500: #F0A43A;
+  --sv-amber-700: #9A5A06;
+  --sv-caspian-300: #7FB8B2;
+  --sv-caspian-500: #2F7D78;
+  --sv-caspian-600: #2A716C;
+  --sv-green-300: #5FBF85;
+  --sv-green-600: #2A7548;
+  --sv-red-300: #F07A66;
+  --sv-red-600: #C2412D;
+  --sv-blue-300: #8FA3F0;
+  --sv-blue-600: #3B5BCC;
+
+  /* Semantic: light (default) */
+  --sv-bg-canvas: var(--sv-paper-100);
+  --sv-bg-surface: var(--sv-white);
+  --sv-bg-muted: var(--sv-ink-100);
+  --sv-bg-inverse: var(--sv-ink-950);
+  --sv-text-primary: var(--sv-ink-950);
+  --sv-text-secondary: var(--sv-ink-600);
+  --sv-text-inverse: var(--sv-paper-100);
+  --sv-text-on-accent: var(--sv-ink-950);
+  --sv-border-default: var(--sv-ink-200);
+  --sv-border-strong: var(--sv-ink-950);
+  --sv-accent-primary: var(--sv-amber-500);
+  --sv-accent-text: var(--sv-amber-700);
+  --sv-data-primary: var(--sv-caspian-600);
+  --sv-status-ok: var(--sv-green-600);
+  --sv-status-blocked: var(--sv-amber-700);
+  --sv-status-error: var(--sv-red-600);
+  --sv-status-timeout: var(--sv-blue-600);
+  --sv-logo-mark: var(--sv-ink-950);
+
+  /* Layout */
+  --sv-space-1: 4px;
+  --sv-space-2: 8px;
+  --sv-space-3: 12px;
+  --sv-space-4: 16px;
+  --sv-space-6: 24px;
+  --sv-space-8: 32px;
+  --sv-space-12: 48px;
+  --sv-space-16: 64px;
+  --sv-radius-sm: 6px;
+  --sv-radius-md: 10px;
+  --sv-radius-lg: 16px;
+  --sv-radius-full: 999px;
+
+  /* Typography. Gamiya Retro is licensed for personal use only and is not
+     shipped in this repository; install it locally or replace the display face. */
+  --sv-font-display: "Gamiya Retro", "IBM Plex Sans", system-ui, sans-serif;
+  --sv-font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --sv-font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+[data-theme="dark"] {
+  --sv-bg-canvas: var(--sv-ink-950);
+  --sv-bg-surface: var(--sv-ink-900);
+  --sv-bg-muted: var(--sv-ink-800);
+  --sv-bg-inverse: var(--sv-paper-100);
+  --sv-text-primary: var(--sv-paper-100);
+  --sv-text-secondary: var(--sv-ink-300);
+  --sv-text-inverse: var(--sv-ink-950);
+  --sv-border-default: var(--sv-ink-700);
+  --sv-border-strong: var(--sv-paper-100);
+  --sv-accent-text: var(--sv-amber-300);
+  --sv-data-primary: var(--sv-caspian-300);
+  --sv-status-ok: var(--sv-green-300);
+  --sv-status-blocked: var(--sv-amber-300);
+  --sv-status-error: var(--sv-red-300);
+  --sv-status-timeout: var(--sv-blue-300);
+  --sv-logo-mark: var(--sv-paper-100);
+}

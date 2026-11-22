@@ -48,6 +48,18 @@ jobs:
           SORVIA_TEST_ADMIN_DSN: postgresql://postgres:postgres@localhost:5432/postgres
         run: pytest -q
 
+  web:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci --prefix web
+      - run: npm run build --prefix web
+
   docker:
     runs-on: ubuntu-24.04
     steps:

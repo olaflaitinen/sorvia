@@ -83,6 +83,35 @@ def readyz(svc: ServicesDep) -> dict[str, str]:
     return {"status": "ready"}
 
 
+@router.get("/v1/meta", tags=["health"])
+def meta(svc: ServicesDep) -> dict[str, Any]:
+    from sorvia import __version__
+
+    s = svc.settings
+    return {"version": __version__, "llm_provider": s.llm_provider, "llm_model": s.llm_model or None,
+            "strategy": s.strategy, "max_rows": s.max_rows}
+
+
+@router.get("/v1/suggestions", tags=["ask"])
+def suggestions(principal: PrincipalDep, svc: ServicesDep, limit: int = Query(default=8, ge=1, le=60)) -> list[str]:
+    """Example questions. With the offline provider these are exactly the questions it can answer."""
+    path = svc.settings.static_sql_path
+    if path is None or not path.exists():
+        return []
+    items = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    picked = [i["question"] for i in items if i.get("difficulty") in ("easy", "medium")][::3][:limit]
+    return picked or [i["question"] for i in items][:limit]
+
+
+@router.get("/v1/suggestions/all", tags=["ask"])
+def all_suggestions(principal: PrincipalDep, svc: ServicesDep) -> list[dict[str, str]]:
+    path = svc.settings.static_sql_path
+    if path is None or not path.exists():
+        return []
+    items = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    return [{"question": i["question"], "difficulty": i["difficulty"]} for i in items]
+
+
 # -- auth --------------------------------------------------------------------------
 
 

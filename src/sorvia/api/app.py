@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 
 from sorvia import __version__
 from sorvia.api.deps import RateLimiter, Services
@@ -101,7 +101,26 @@ def create_app(settings: Settings | None = None, services: Services | None = Non
         return JSONResponse({"code": "internal_error", "message": "Internal server error"}, status_code=500)
 
     app.include_router(router)
+    _mount_web(app, settings)
     return app
+
+
+def _mount_web(app: FastAPI, settings: Settings) -> None:
+    """Serve the built single-page web client, with index.html as the fallback route."""
+    dist = settings.web_dist
+    index = dist / "index.html"
+    if not index.exists():
+        return
+    root = dist.resolve()
+
+    @app.get("/{path:path}", include_in_schema=False)
+    async def spa(path: str) -> FileResponse:
+        if path.startswith(("v1/", "docs", "openapi.json", "redoc")):
+            raise HTTPException(404, "Not found")
+        candidate = (dist / path).resolve()
+        if path and candidate.is_file() and candidate.is_relative_to(root):
+            return FileResponse(candidate)
+        return FileResponse(index, headers={"Cache-Control": "no-cache"})
 
 
 def _code_for(status_code: int) -> str:

@@ -1,4 +1,11 @@
-# Sorvia API image.
+# Sorvia image: API plus the built web client, served from one process.
+FROM node:22-bookworm-slim AS web
+WORKDIR /web
+COPY web/package.json web/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY web/ ./
+RUN npm run build
+
 FROM python:3.12-slim-bookworm AS build
 WORKDIR /src
 RUN pip install --no-cache-dir build==1.2.2
@@ -10,13 +17,15 @@ FROM python:3.12-slim-bookworm
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     SORVIA_MIGRATIONS_DIR=/app/db/migrations \
-    SORVIA_STATIC_SQL_PATH=/app/benchmark/data/az_text2sql_v1.jsonl
+    SORVIA_STATIC_SQL_PATH=/app/benchmark/data/az_text2sql_v1.jsonl \
+    SORVIA_WEB_DIST=/app/web/dist
 RUN useradd --create-home --uid 10001 sorvia
 WORKDIR /app
 COPY --from=build /dist/*.whl /tmp/
 RUN pip install --no-cache-dir /tmp/*.whl && rm -f /tmp/*.whl
 COPY db/migrations ./db/migrations
 COPY benchmark/data ./benchmark/data
+COPY --from=web /web/dist ./web/dist
 COPY docker/entrypoint-init.sh /usr/local/bin/sorvia-init
 USER sorvia
 EXPOSE 8000

@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import os
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, SecretStr
+from psycopg.conninfo import conninfo_to_dict, make_conninfo
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -28,10 +30,18 @@ class Settings(BaseSettings):
         default="postgresql://sorvia_nl:sorvia_nl@localhost:5432/sorvia",
         description="Executes generated SQL (member of sorvia_reader).",
     )
+    # Hosted deployments (Vercel + Neon) provide one owner URL. When it is set,
+    # the app and reader DSNs are derived from it with the two login roles.
+    database_url: str | None = None
+    database_url_unpooled: str | None = None
+    api_db_password: SecretStr | None = None
+    nl_db_password: SecretStr | None = None
     pool_min_size: int = 1
     pool_max_size: int = 10
 
     migrations_dir: Path = REPO_ROOT / "db" / "migrations"
+    # Built web client (npm run build in web/). Served by the API when present.
+    web_dist: Path = REPO_ROOT / "web" / "dist"
 
     # Authentication.
     jwt_secret: SecretStr = SecretStr("change-me-in-production-please-32-bytes-minimum")
@@ -73,6 +83,24 @@ class Settings(BaseSettings):
     rate_limit_per_minute: int = 30
     cors_origins: list[str] = Field(default_factory=list)
 
+    @model_validator(mode="after")
+    def _derive_dsns(self) -> Settings:
+        url = self.database_url or os.environ.get("DATABASE_URL") or os.environ.get("POSTGRES_URL")
+        if not url:
+            return self
+        direct = (self.database_url_unpooled or os.environ.get("DATABASE_URL_UNPOOLED")
+                  or os.environ.get("POSTGRES_URL_NON_POOLING") or url)
+        explicit = self.model_fields_set
+        if "admin_dsn" not in explicit:
+            self.admin_dsn = _normalise(direct)
+        for field, user, secret in (("app_dsn", "sorvia_api", self.api_db_password),
+                                    ("reader_dsn", "sorvia_nl", self.nl_db_password)):
+            if field not in explicit and secret is not None:
+                params = conninfo_to_dict(_normalise(url))
+                params.update(user=user, password=secret.get_secret_value())
+                setattr(self, field, make_conninfo(**params))  # type: ignore[arg-type]
+        return self
+
     def validate_for_production(self) -> None:
         """Refuse to start in production with development secrets."""
         if self.environment != "production":
@@ -82,6 +110,15 @@ class Settings(BaseSettings):
             raise RuntimeError("SORVIA_JWT_SECRET must be a random value of at least 32 characters")
         if self.fin_key.get_secret_value().startswith("dev-only"):
             raise RuntimeError("SORVIA_FIN_KEY must be set in production")
+
+
+def _normalise(url: str) -> str:
+    """libpq accepts postgres:// but some providers add parameters psycopg does not know."""
+    params = conninfo_to_dict(url)
+    params.pop("pgbouncer", None)
+    params.pop("connect_timeout", None)
+    params.setdefault("connect_timeout", "10")
+    return make_conninfo(**params)  # type: ignore[arg-type]
 
 
 @lru_cache(maxsize=1)

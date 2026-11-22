@@ -10,3 +10,5 @@ benchmark/results
 .env
 tests
 docs
+web/node_modules
+web/dist

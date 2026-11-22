@@ -29,7 +29,8 @@ class Database:
             settings.app_dsn,
             min_size=settings.pool_min_size,
             max_size=settings.pool_max_size,
-            kwargs={"row_factory": dict_row, "application_name": "sorvia-api"},
+            # prepare_threshold=None: safe behind transaction-mode poolers (PgBouncer, Neon).
+            kwargs={"row_factory": dict_row, "application_name": "sorvia-api", "prepare_threshold": None},
             open=True,
             name="sorvia-app",
         )
@@ -37,7 +38,7 @@ class Database:
             settings.reader_dsn,
             min_size=settings.pool_min_size,
             max_size=settings.pool_max_size,
-            kwargs={"application_name": "sorvia-reader"},
+            kwargs={"application_name": "sorvia-reader", "prepare_threshold": None},
             open=True,
             name="sorvia-reader",
         )

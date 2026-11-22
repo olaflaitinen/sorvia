@@ -5,7 +5,9 @@ batches, receipts, prescriptions, sales and the movement ledger. Stock is
 simulated in memory with the same rules the database enforces (FEFO
 allocation, no expired sales, prescriptions for Rx drugs, no negative stock),
 so the loaded data satisfies every trigger even though triggers are disabled
-during the bulk load for speed (session_replication_role = replica).
+during the bulk load for speed: session_replication_role = replica for a
+superuser, otherwise ALTER TABLE ... DISABLE TRIGGER USER (managed Postgres
+services such as Neon do not grant superuser).
 
 The same --seed and --today always produce the same database.
 """
@@ -388,6 +390,10 @@ LOAD_ORDER = ("branch", "job_position", "employee", "manufacturer", "category", 
               "customer", "prescription", "prescription_item", "sale", "sale_item", "stock", "stock_transfer",
               "batch_movement")
 
+# Tables with user triggers that must not fire during the bulk load.
+TRIGGER_TABLES = ("pharma.branch", "pharma.employee", "pharma.drug", "pharma.customer", "pharma.prescription",
+                  "pharma.sale_item", "pharma.stock_transfer", "pharma.batch_movement")
+
 IDENTITY = {
     "stock_transfer": "transfer_id",
     "branch": "branch_id", "job_position": "position_id", "employee": "employee_id",
@@ -398,7 +404,7 @@ IDENTITY = {
 
 
 def load(conn: psycopg.Connection[Any], cfg: SeedConfig, fin_key: str, reset: bool = False) -> dict[str, int]:
-    """Generate and bulk-load data. Requires a superuser connection (session_replication_role)."""
+    """Generate and bulk-load data. Runs as superuser or as the table owner."""
     existing = conn.execute("SELECT count(*) FROM pharma.branch").fetchone()
     count = next(iter(existing.values())) if isinstance(existing, dict) else existing[0]  # type: ignore[index]
     if count and not reset:
@@ -415,7 +421,14 @@ def load(conn: psycopg.Connection[Any], cfg: SeedConfig, fin_key: str, reset: bo
             conn.execute("TRUNCATE analytics.fact_sales")
             conn.execute("UPDATE analytics.etl_state SET last_sale_ts = '-infinity', refreshed_at = NULL")
         conn.execute("SELECT pharma.ensure_sale_partitions(%s, %s)", (gen.start, cfg.today))
-        conn.execute("SET LOCAL session_replication_role = replica")
+        su_row = conn.execute("SELECT rolsuper FROM pg_roles WHERE rolname = current_user").fetchone()
+        superuser = bool(next(iter(su_row.values())) if isinstance(su_row, dict) else su_row[0])  # type: ignore[index]
+        if superuser:
+            conn.execute("SET LOCAL session_replication_role = replica")
+        else:
+            for table in TRIGGER_TABLES:
+                conn.execute(sql.SQL("ALTER TABLE {} DISABLE TRIGGER USER").format(
+                    sql.Identifier(*table.split("."))))
         for table in LOAD_ORDER:
             cols = COLUMNS[table]
             stmt = sql.SQL("COPY pharma.{} ({}) FROM STDIN").format(
@@ -440,7 +453,12 @@ def load(conn: psycopg.Connection[Any], cfg: SeedConfig, fin_key: str, reset: bo
             """,
             {"k": fin_key},
         )
-        conn.execute("SET LOCAL session_replication_role = origin")
+        if superuser:
+            conn.execute("SET LOCAL session_replication_role = origin")
+        else:
+            for table in TRIGGER_TABLES:
+                conn.execute(sql.SQL("ALTER TABLE {} ENABLE TRIGGER USER").format(
+                    sql.Identifier(*table.split("."))))
 
         for table, column in IDENTITY.items():
             conn.execute(

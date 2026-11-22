@@ -12,7 +12,11 @@ dist/
 .coverage
 htmlcov/
 experiments/results/
+web/node_modules/
+web/dist/
+.vercel/
 benchmark/results/
 .DS_Store
 .idea/
 .vscode/
+web/tsconfig.tsbuildinfo

@@ -56,6 +56,18 @@ flowchart LR
 - **Analitika:** Kimball ulduz sxemi (`analytics.fact_sales` və 4 ölçü cədvəli), inkremental ETL proseduru.
 - **Performans:** B-tree, BRIN, partial və composite indekslər, partitioning, izolyasiya səviyyələrinin eksperimental müqayisəsi.
 
+## Veb interfeys
+
+`web/` qovluğunda React + Vite ilə yazılmış tətbiq:
+
+- **Sual ver:** sual yazılır və ya nümunə seçilir; cavab cədvəl, qrafik və SQL kimi göstərilir, status və bloklanma səbəbi Azərbaycan dilində izah olunur, cavab qiymətləndirilə bilir.
+- **Tarixçə:** bütün suallar, statusları və icra olunmuş SQL.
+- **Əməliyyatlar:** az qalan dərmanlar, vaxtı bitən partiyalar, partiyanın istənilən andakı yeri (temporal izlənmə), yeni satış.
+- **Məlumat xəritəsi:** semantik qat, yəni hər cədvəlin Azərbaycan dilində təsviri.
+- **İdarəetmə (menecer, admin):** statistika, bloklanma səbəbləri, indeks məsləhətçisi (təhlil, tətbiq, rədd), analitik sxemin yenilənməsi.
+
+Açıq və tünd rejim, mobil uyğunluq və brend token-ləri (`assets/brand/tokens.css`) daxildir.
+
 ## Tez başlanğıc (Docker)
 
 ```bash
@@ -65,7 +77,7 @@ cp .env.example .env            # parolları dəyişin
 docker compose up --build
 ```
 
-Stack hazır olduqdan sonra API `http://localhost:8000`, interaktiv sənədlər isə `http://localhost:8000/docs` ünvanındadır. `SORVIA_DEMO_PASSWORD` təyin olunubsa, bu istifadəçilər yaradılır:
+Stack hazır olduqdan sonra veb interfeys və API `http://localhost:8000`, interaktiv API sənədləri isə `http://localhost:8000/docs` ünvanındadır. Vercel-də yerləşdirmə: [`docs/deployment.md`](docs/deployment.md). `SORVIA_DEMO_PASSWORD` təyin olunubsa, bu istifadəçilər yaradılır:
 
 | İstifadəçi | Rol | Görə bildiyi |
 |---|---|---|
@@ -148,13 +160,13 @@ src/sorvia/
   evaluation.py       execution accuracy metrikləri
 benchmark/            test dəsti, hücum korpusu, qiymətləndirmə skripti
 experiments/          RQ1-RQ4 və S1-S3 eksperimentləri
-docs/                 arxitektura, DB dizaynı, təhlükəsizlik, eksperimentlər, API, brend
+web/                  veb interfeys (React + Vite)
+api/, vercel.json     Vercel serverless yerləşdirməsi
+docs/                 arxitektura, DB dizaynı, təhlükəsizlik, eksperimentlər, API, brend, yerləşdirmə
 assets/brand/         loqo, ikon, favicon, rəng token-ləri (tokens.css)
 ```
 
-## Növbəti mərhələ
-
-- Veb interfeys (sual paneli, admin paneli, optimallaşdırma paneli).
+## Brend
 
 Brend bələdçisi: [`docs/brand.md`](docs/brand.md) və Figma faylı.
 

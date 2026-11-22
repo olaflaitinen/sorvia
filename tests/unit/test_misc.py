@@ -111,8 +111,9 @@ def test_repository_text_policy() -> None:
     banned = {chr(0x2014)}
     offenders = []
     for path in ROOT.rglob("*"):
-        if not path.is_file() or any(part in {".git", "results", "__pycache__", ".venv", ".mypy_cache",
-                                               ".ruff_cache", ".pytest_cache"} for part in path.parts):
+        skip = {".git", "results", "__pycache__", ".venv", ".mypy_cache", "node_modules", "dist",
+                ".ruff_cache", ".pytest_cache"}
+        if not path.is_file() or any(part in skip for part in path.parts):
             continue
         if path.suffix.lower() in {".png", ".jpg", ".ico", ".pyc"}:
             continue
@@ -125,3 +126,21 @@ def test_repository_text_policy() -> None:
                 offenders.append(f"{path.relative_to(ROOT)}: U+{ord(ch):04X}")
                 break
     assert not offenders, offenders
+
+
+def test_dsns_are_derived_from_database_url(monkeypatch: pytest.MonkeyPatch) -> None:
+    for var in ("DATABASE_URL", "DATABASE_URL_UNPOOLED", "POSTGRES_URL", "POSTGRES_URL_NON_POOLING",
+                "SORVIA_ADMIN_DSN", "SORVIA_APP_DSN", "SORVIA_READER_DSN"):
+        monkeypatch.delenv(var, raising=False)
+    s = Settings(
+        database_url="postgresql://owner:pw@ep-x-pooler.neon.tech/db?sslmode=require",
+        database_url_unpooled="postgresql://owner:pw@ep-x.neon.tech/db?sslmode=require",
+        api_db_password="api-secret",  # type: ignore[arg-type]
+        nl_db_password="nl-secret",  # type: ignore[arg-type]
+    )
+    assert "ep-x.neon.tech" in s.admin_dsn and "owner" in s.admin_dsn
+    assert "user=sorvia_api" in s.app_dsn and "ep-x-pooler" in s.app_dsn and "api-secret" in s.app_dsn
+    assert "user=sorvia_nl" in s.reader_dsn and "sslmode=require" in s.reader_dsn
+    explicit = Settings(database_url="postgresql://o:p@h/db", app_dsn="postgresql://x@y/z",
+                        api_db_password="a", nl_db_password="b")  # type: ignore[arg-type]
+    assert explicit.app_dsn == "postgresql://x@y/z"

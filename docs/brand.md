@@ -46,4 +46,13 @@ Status rəngləri API-dəki statuslara uyğundur: `ok` yaşıl, `blocked` kəhr�
 | IBM Plex Sans | İnterfeys və gövdə mətni |
 | IBM Plex Mono | SQL, rəqəmlər, texniki etiketlər |
 
-Gamiya Retro exFont-dan götürülüb və **yalnız şəxsi istifadə üçün pulsuzdur**. Lisenziya imkan vermədiyi üçün font faylı bu repoda paylaşılmır. Kommersiya istifadəsindən əvvəl lisenziya alınmalıdır. Loqodakı yazı konturlanmış vektordur, ona görə font quraşdırılmadan da düzgün görünür.
+### Şrift lisenziyası və həll
+
+Gamiya Retro exFont-dan götürülüb və **yalnız şəxsi istifadə üçün pulsuzdur**. Font faylını açıq repoda və ya saytda paylaşmaq lisenziyanı pozardı. Buna görə:
+
+- Font faylı repoda yoxdur və brauzerə heç vaxt göndərilmir.
+- Gamiya Retro ilə yazılan hər şey (loqo, "Soruş, aşkara çıxsın." şüarı, Figma-dakı başlıqlar) konturlanmış vektordur. Bu, loqo üçün standart üsuldur və font quraşdırılmadan da hər yerdə eyni görünür.
+- Yeni başlıq lazım olduqda `scripts/outline_text.py` skripti şrifti lokal kompüterdən oxuyub `fill="currentColor"` olan SVG yaradır.
+- İnterfeys mətni açıq lisenziyalı (SIL OFL) IBM Plex Sans və IBM Plex Mono ilə yazılır; onlar `@fontsource` vasitəsilə saytın özündən verilir, Azərbaycan hərflərini tam dəstəkləyir.
+
+Figma-da başlıqları mətn kimi redaktə etmək istəsəniz, şrifti kompüterinizə quraşdırın; Figma desktop tətbiqi lokal şriftləri avtomatik görür. Kommersiya istifadəsindən əvvəl exFont-dan lisenziya alınmalıdır.
